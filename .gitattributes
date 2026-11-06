@@ -1,0 +1,10 @@
+# 让 GitHub 的语言统计只反映代码：文档与示例语料不算"代码"
+assets/** linguist-documentation
+doc/**    linguist-documentation
+docs/**   linguist-documentation
+
+# 二进制资源（避免被当成文本 diff）
+*.png  binary
+*.pdf  binary
+*.pptx binary
+*.docx binary

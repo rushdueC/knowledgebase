@@ -59,12 +59,12 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # 2) 建库 + 跑题 + 打分
-.\\.venv\\Scripts\\python.exe build_index.py
-.\\.venv\\Scripts\\python.exe run_batch.py
-.\\.venv\\Scripts\\python.exe run_eval.py
+.\.venv\Scripts\python.exe build_index.py
+.\.venv\Scripts\python.exe run_batch.py
+.\.venv\Scripts\python.exe run_eval.py
 
-# 3) 打开界面（Windows 可直接双击 启动控制台.bat）
-.\\.venv\\Scripts\\python.exe -m streamlit run app.py
+# 3) 打开界面（Windows 也可直接双击 启动控制台.bat）
+.\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
 > 模型默认：`bge-m3`（embedding）· `qwen3:8b`（生成）· `gemma4:31b-cloud`（评委）。

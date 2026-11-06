@@ -103,7 +103,7 @@ knowledgebase/
 ├── doc/                   📚 项目文档（使用说明 / 参数手册 / 报告 / 实验 / 踩坑全录）
 ├── assets/                🖼 架构图（PNG + 可交互 HTML）
 │
-├── docs/                  ⬅️ 你的原始文档放这里（**默认不入库**，见 .gitignore）
+├── docs/                  ⬅️ 你的原始文档放这里（仓库自带示例语料，可替换）
 ├── data/                  自动生成的 xlsx / csv 结果（**不入库**）
 ├── vector_store/          自动生成的向量库（**不入库**，可重建）
 ├── models/                rerank 模型 2.2GB（**不入库**，predownload_rerank.py 下载）
@@ -161,7 +161,7 @@ pip install ragas==0.4.3 openai
 
 ```powershell
 ollama pull qwen3:8b                 # 被评测的生成模型
-ollama pull qwen3-embedding:0.6b     # 中文 embedding（639MB，关键）
+ollama pull bge-m3                   # embedding（2.2GB，中文强；也可换回 qwen3-embedding:0.6b）
 ```
 
 评委模型（`JUDGE_MODEL`）默认用云端的 `gemma4:31b-cloud`：
@@ -223,7 +223,7 @@ python run_eval.py        # 打分
 ### 三步加上
 
 ```powershell
-# ① 预下载模型（只做一次，约 1.1GB，走 hf-mirror 镜像）
+# ① 预下载模型（只做一次，约 2.2GB，走 hf-mirror 镜像）
 python predownload_rerank.py
 
 # ② config.py 确认这四行（predownload 结束时会直接打印给你）
@@ -327,7 +327,7 @@ python compare.py       ← 看 v1 vs v2 谁更好
 
 | 优先级 | 参数 | 从哪改到哪 | 什么时候调 |
 |---|---|---|---|
-| 1 | `EMBED_MODEL` | 默认英文模型 → `qwen3-embedding:0.6b` | 中文知识库**必做**，提升最大 |
+| 1 | `EMBED_MODEL` | 默认已是 `bge-m3`（可对比 `qwen3-embedding:0.6b`） | 中文知识库最关键，换它等于换库 |
 | 2 | `RERANK_ENABLED` | False → True（local） | precision 低、相关内容排后面 |
 | 3 | `TOP_K` | 3 → 5 → 8 | 答案不完整、漏内容 |
 | 4 | `CHUNK_SIZE` | 800 → 500 或 1200 | 召回片段总是"差一点"或"太啰嗦" |
@@ -475,27 +475,6 @@ precision 分别是 0.9278 / 0.9033 —— **同协议差 0.0245**。
    干净的 A/B 是 K4（同参考答案）：+0.021 recall / +0.009 precision。
 
 > 完整逐题数据、run_id、复现命令 → [实验结果.md](doc/实验结果.md)。
-
-### 8.5 v3 语料复测（398 块 / 20 题，2026-11-05）
-
-换了 3 倍大的语料、题库从 8 题扩到 16 题之后，同样四组参数重跑一遍：
-
-| 组 | 配置 | ctx_recall | ctx_precision | 相对基线 |
-|---|---|---|---|---|
-| 基线 | TOP_K=5 · rerank 开 · BM25 关 | **0.927** | **0.900** | — |
-| G1 | TOP_K=8 | 0.948 | 0.828 | +0.021 / **−0.072** |
-| G2 | TOP_K=3 | 0.896 | 0.917 | −0.031 / +0.016（噪声内） |
-| G3 | rerank 关 | 0.859 | **0.704** | −0.068 / **−0.196** |
-| G4 | BM25 开 | 0.927 | 0.844 | ±0 / **−0.056** |
-
-**三条结论（和 v1 时代一致，但幅度更大）**：
-
-1. **rerank 是唯一的大杠杆**：precision `0.704 → 0.900`（+27.8%），是噪声的 8 倍。代价是每题 +45 秒。
-2. **`TOP_K` 是一条曲线**：recall 随 K 升、precision 随 K 降，**5 是拐点**。8 比 5 少 0.072 精度只换回 0.021 召回。
-3. **混合检索仍然没用**：recall 一模一样、precision 掉 0.056 —— 掉分全在「市场洞察对比」那题（1.000 → 0.000），
-   BM25 把关键词密度高但内容空泛的 PPT 页顶了上来。
-
-> 完整逐题分析见 [实验结果.md](doc/实验结果.md)；v1 时代的 2×2 见上文 8.1~8.4。
 
 ---
 

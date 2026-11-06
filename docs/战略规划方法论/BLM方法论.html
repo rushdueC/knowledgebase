@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IBM业务领先模型(BLM) — 清洗后知识库数据</title>
+<style>
+:root {
+  --primary: #1A1A2E;
+  --secondary: #16213E;
+  --accent: #0F3460;
+  --highlight: #E94560;
+  --bg: #F5F5FA;
+  --card-bg: #FFFFFF;
+  --text: #2D3748;
+  --text-muted: #718096;
+  --border: #E2E8F0;
+  --tag-bg: #Ebf4FF;
+  --tag-text: #2B6CB0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+header {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+header h1 { font-size: 28px; margin-bottom: 8px; }
+header .subtitle { font-size: 14px; opacity: .85; margin-bottom: 4px; }
+header .meta { font-size: 13px; opacity: .7; }
+.stats-bar {
+  display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
+  padding: 20px 24px; background: #fff; border-bottom: 1px solid var(--border);
+}
+.stat-item { text-align: center; }
+.stat-item .num { font-size: 24px; font-weight: 700; color: var(--accent); }
+.stat-item .label { font-size: 12px; color: var(--text-muted); }
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 12px 24px; display: flex; justify-content: center;
+  gap: 6px; flex-wrap: wrap; box-shadow: var(--shadow);
+}
+nav a {
+  font-size: 12px; text-decoration: none; color: var(--accent);
+  padding: 6px 12px; border-radius: 6px; transition: all .15s; white-space: nowrap;
+}
+nav a:hover { background: var(--tag-bg); color: var(--primary); }
+.container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+.chapter-title {
+  font-size: 24px; font-weight: 700; color: var(--primary);
+  margin: 40px 0 16px; padding-bottom: 12px;
+  border-bottom: 3px solid var(--highlight);
+}
+.chapter-title .ch-num {
+  display: inline-block; background: var(--primary); color: #fff;
+  font-size: 14px; padding: 2px 10px; border-radius: 4px; margin-right: 10px;
+}
+.card {
+  background: var(--card-bg); border-radius: 10px; padding: 24px;
+  margin-bottom: 16px; box-shadow: var(--shadow); transition: box-shadow .2s;
+}
+.card:hover { box-shadow: var(--shadow-hover); }
+.card .entry-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.card .entry-id {
+  font-size: 11px; font-weight: 700; color: var(--highlight);
+  background: #FFF0F5; padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+}
+.card h3 { font-size: 16px; color: var(--primary); line-height: 1.4; }
+.card .section-tag { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.card .content-text {
+  font-size: 14px; color: var(--text); line-height: 1.8;
+  margin: 12px 0; white-space: pre-wrap;
+}
+.card table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.card th { background: var(--accent); color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+.card td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.card tr:nth-child(even) td { background: #F7FAFC; }
+.card .keywords {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);
+}
+.card .keyword {
+  font-size: 11px; color: var(--tag-text); background: var(--tag-bg);
+  padding: 3px 8px; border-radius: 4px;
+}
+.terminology-section {
+  background: #fff; border-radius: 10px; padding: 24px;
+  margin: 32px 0; box-shadow: var(--shadow);
+}
+.terminology-section h2 {
+  font-size: 20px; color: var(--primary); margin-bottom: 16px;
+  padding-bottom: 8px; border-bottom: 2px solid var(--border);
+}
+.term-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.term-item {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.term-item .abbr { font-weight: 700; color: var(--accent); font-size: 13px; min-width: 90px; flex-shrink: 0; }
+.term-item .desc { font-size: 12px; color: var(--text-muted); }
+footer {
+  text-align: center; padding: 32px 24px;
+  color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  header { padding: 32px 16px; }
+  header h1 { font-size: 22px; }
+  .card { padding: 16px; }
+  .container { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>IBM业务领先模型(BLM) — 清洗后知识库数据</h1>
+  <div class="subtitle">战略与执行 · IBM Business Leadership Model</div>
+  <div class="meta">源文件：IBM业务领先模型.ppt | 共67页幻灯片 | 清洗后31条知识条目</div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="num">14</div><div class="label">章节</div></div>
+  <div class="stat-item"><div class="num">31</div><div class="label">知识条目</div></div>
+  <div class="stat-item"><div class="num">67</div><div class="label">原始幻灯片</div></div>
+  <div class="stat-item"><div class="num">22</div><div class="label">核心术语</div></div>
+</div>
+
+<nav>
+  <a href="#ch1">1.0 BLM概述</a>
+  <a href="#ch2">2.0 领导力与价值观</a>
+  <a href="#ch3">3.0 差距分析</a>
+  <a href="#ch4">4.0 市场洞察</a>
+  <a href="#ch5">5.0 战略意图</a>
+  <a href="#ch6">6.0 创新焦点</a>
+  <a href="#ch7">7.0 业务设计</a>
+  <a href="#ch8">8.0 关键任务</a>
+  <a href="#ch9">9.0 正式组织</a>
+  <a href="#ch10">10.0 人才</a>
+  <a href="#ch11">11.0 氛围与文化</a>
+  <a href="#ch12">12.0 领导力角色</a>
+  <a href="#ch13">13.0 一致性与根因分析</a>
+  <a href="#ch14">14.0 业务规划模板</a>
+  <a href="#terms">术语表</a>
+</nav>
+
+<div class="container">
+
+<div id="ch1" class="chapter-title"><span class="ch-num">1.0</span>BLM概述</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-001</span><div><h3>IBM业务领先模型(BLM)定义</h3><div class="section-tag">1.0</div></div></div>
+  <div class="content-text">Business Leadership Model（BLM）是一个IBM中高层用于战略制定与执行联接的方法与平台。它从市场分析、战略意图、创新焦点、业务设计、关键任务、正式组织、人才、氛围与文化以及领导力与价值观等各个方面帮助管理层在企业战略制定与执行的过程中进行系统的思考、务实的分析、有效的资源调配及执行跟踪。
+
+BLM使IBM成功的四要素——战略、执行、价值观与领导力之间相一致，从而为IBM带来了多方面的业务价值：共同的目标、同一种语言、执行的跟踪、最基本的方法、逻辑的力量、自上而下实施。</div>
+  <div class="keywords"><span class="keyword">BLM</span><span class="keyword">战略制定与执行联接</span><span class="keyword">系统思考</span><span class="keyword">资源调配</span><span class="keyword">执行跟踪</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-002</span><div><h3>BLM模型结构与要素</h3><div class="section-tag">1.0</div></div></div>
+  <div class="content-text">BLM模型包含以下核心要素：</div>
+  <table>
+    <tr><th>维度</th><th>要素</th><th>说明</th></tr>
+    <tr><td><strong>领导力</strong></td><td>—</td><td>根本，高层管理者需具备的基本能力和必备能力</td></tr>
+    <tr><td><strong>价值观</strong></td><td>—</td><td>基础，决策与行动的基本准则</td></tr>
+    <tr><td><strong>战略</strong></td><td>市场洞察</td><td>了解客户需求、竞争者动向、技术发展和市场经济状况</td></tr>
+    <tr><td></td><td>战略意图</td><td>组织机构的方向和最终目标</td></tr>
+    <tr><td></td><td>创新焦点</td><td>与市场同步的探索与试验</td></tr>
+    <tr><td></td><td>业务设计</td><td>利用内部能力和战略控制点探索可替代的业务设计</td></tr>
+    <tr><td><strong>执行</strong></td><td>关键任务</td><td>满足业务设计和价值主张要求的必须行动</td></tr>
+    <tr><td></td><td>相互依赖关系</td><td>组织间的相互依赖关系是有效业务设计的基础</td></tr>
+    <tr><td></td><td>正式组织</td><td>组织结构、管理和考核标准</td></tr>
+    <tr><td></td><td>人才</td><td>重要岗位人员需具备相应能力</td></tr>
+    <tr><td></td><td>氛围与文化</td><td>创造好的工作环境以激励员工</td></tr>
+    <tr><td><strong>差距</strong></td><td>业绩差距</td><td>现有经营结果和期望值之间差距的量化陈述</td></tr>
+    <tr><td></td><td>机会差距</td><td>现有经营结果和新的业务设计所能带来结果的差距评估</td></tr>
+    <tr><td><strong>市场结果</strong></td><td>—</td><td>战略与执行联接的产出</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">领导力</span><span class="keyword">价值观</span><span class="keyword">战略</span><span class="keyword">执行</span><span class="keyword">市场结果</span><span class="keyword">差距</span></div>
+</div>
+
+<div id="ch2" class="chapter-title"><span class="ch-num">2.0</span>领导力与价值观</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-003</span><div><h3>领导力是根本</h3><div class="section-tag">2.0</div></div></div>
+  <div class="content-text">BLM业务领先模型是创造快速和持续适应不断改变的业务的核心，它的运用是IBM的高层管理者需要具备的基本能力和必备能力，通过积极的实践得以发展。
+
+IBM的高管层的领导力培养是通过领导他们的高层团队进行战略问题和机会的勘查与设计以及项目的执行来推动变革。战略设计与执行计划是高管层每年都要亲自领导的，在获得对外部市场的持续洞察、识别新的机会、开发业务设计、确保这些设计是切实可行的过程中发挥关键作用。</div>
+  <div class="keywords"><span class="keyword">领导力</span><span class="keyword">战略设计</span><span class="keyword">执行计划</span><span class="keyword">高层管理者</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-004</span><div><h3>价值观是基础</h3><div class="section-tag">2.0</div></div></div>
+  <div class="content-text">IBM价值观：成就客户、创新为要、诚信负责。
+
+作为业务的主要战略家的总经理，要确保IBM价值观反映在公司的战略上，各级领导者要确保IBM价值观是日常执行中的一部分。IBM价值观是我们决策与行动的基本准则。</div>
+  <div class="keywords"><span class="keyword">价值观</span><span class="keyword">决策准则</span><span class="keyword">日常执行</span></div>
+</div>
+
+<div id="ch3" class="chapter-title"><span class="ch-num">3.0</span>差距分析</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-005</span><div><h3>业绩差距与机会差距</h3><div class="section-tag">3.0</div></div></div>
+  <table>
+    <tr><th>差距类型</th><th>定义</th><th>填补方式</th></tr>
+    <tr><td><strong>业绩差距</strong></td><td>现有经营结果和期望值之间差距的一种量化的陈述</td><td>常常可以通过高效的执行填补，不需要改变业务设计</td></tr>
+    <tr><td><strong>机会差距</strong></td><td>现有经营结果和新的业务设计所能带来的经营结果之间差距的一种量化的评估</td><td>需要有新的业务设计</td></tr>
+  </table>
+  <div class="content-text">战略是由不满意激发的，而不满意是对现状和期望业绩之间差距的一种感知。</div>
+  <div class="keywords"><span class="keyword">业绩差距</span><span class="keyword">机会差距</span><span class="keyword">业务设计</span><span class="keyword">高效执行</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-007</span><div><h3>找出差距的流程</h3><div class="section-tag">3.0</div></div></div>
+  <div class="content-text">找出差距的三个步骤：
+1. 列出目前所有的问题 — 全面梳理现存差距
+2. 选出关键的差距 — 考虑对成本、战略层面的影响
+3. 决定负责人 — 明确差距缩小/关闭的责任人
+
+差距描述的要求：
+- 陈述的是业务结果，如收入、利润/贡献和市场份额
+- 形成差距的主要原因
+- 有时间的约束和可量化
+- 有一个明确的负责人，承担缩小差距的责任</div>
+  <div class="keywords"><span class="keyword">列出问题</span><span class="keyword">关键差距</span><span class="keyword">负责人</span></div>
+</div>
+
+<div id="ch4" class="chapter-title"><span class="ch-num">4.0</span>战略——市场洞察</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-008</span><div><h3>市场洞察概述</h3><div class="section-tag">4.0</div></div></div>
+  <div class="content-text">市场洞察力：了解客户需求、竞争者的动向、技术的发展和市场经济状况以找到机遇和风险。
+
+目标：解释市场上正在发生什么以及这些改变对公司来说意味着什么。
+
+市场洞察包含三个维度：
+- 宏观分析：宏观环境对行业的影响
+- 竞争动向：竞争对手的战略和策略
+- 客户分析：客户需求、偏好和购买行为
+
+市场洞察力的缺失会对业务设计产生负面影响，因为所采用的支撑信息和假设可能是有瑕疵的或错误的。</div>
+  <div class="keywords"><span class="keyword">市场洞察</span><span class="keyword">客户需求</span><span class="keyword">竞争者动向</span><span class="keyword">技术发展</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-009</span><div><h3>市场洞察：环境驱动力</h3><div class="section-tag">4.0</div></div></div>
+  <table>
+    <tr><th>环境驱动力</th><th>关注内容</th></tr>
+    <tr><td>技术与服务</td><td>在技术与服务领域里的趋势和变化</td></tr>
+    <tr><td>客户</td><td>需求与当务之急的挑战，为什么客户选择你的产品与服务</td></tr>
+    <tr><td>竞争对手</td><td>竞争市场上正在发生什么变化，谁是主要竞争对手</td></tr>
+    <tr><td>人口统计数据</td><td>将会对业界产生影响的生活方式、时尚以及文化变化趋势</td></tr>
+    <tr><td>法律、政治</td><td>政治、政府法律法规的变化</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">环境驱动力</span><span class="keyword">技术与服务</span><span class="keyword">客户</span><span class="keyword">竞争对手</span><span class="keyword">人口统计</span><span class="keyword">法律法规</span></div>
+</div>
+
+<div id="ch5" class="chapter-title"><span class="ch-num">5.0</span>战略——战略意图</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-011</span><div><h3>战略意图三要素</h3><div class="section-tag">5.0</div></div></div>
+  <table>
+    <tr><th>要素</th><th>定义</th><th>内容</th></tr>
+    <tr><td><strong>愿景</strong></td><td>可持续的、占优势的业务领先地位</td><td>纲领意义，感情契约，现实但有挑战性</td></tr>
+    <tr><td><strong>战略目标</strong></td><td>有效的、合理的、灵活的运营模式</td><td>产品、服务、市场、客户、技术及时机</td></tr>
+    <tr><td><strong>近期目标</strong></td><td>业绩可衡量的指标</td><td>利润、成长率、市场份额、客户满意度及新产品</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">愿景</span><span class="keyword">战略目标</span><span class="keyword">近期目标</span></div>
+</div>
+
+<div id="ch6" class="chapter-title"><span class="ch-num">6.0</span>战略——创新焦点</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-014</span><div><h3>三个成长的地平线</h3><div class="section-tag">6.0</div></div></div>
+  <table>
+    <tr><th>地平线</th><th>定义</th><th>管理重点</th><th>关键指标</th></tr>
+    <tr><td><strong>H1 — 核心业务</strong><br>Stay in the Game</td><td>成熟业务，收入与利润的主要来源</td><td>近期利润表现与现金流</td><td>利润、ROIC、生产效率</td></tr>
+    <tr><td><strong>H2 — 成长业务</strong><br>Compete to Win</td><td>增长业务，市场增长和扩张机会的来源</td><td>收入增长和投资回报</td><td>收入增长、新客户获取、市场份额增长</td></tr>
+    <tr><td><strong>H3 — 新兴机会</strong><br>Change the Game</td><td>产品/业务创新的组合，未来长期增长的机会点</td><td>回报多少和成功的可能性</td><td>项目里程碑、机会点数量和回报评估</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">H1核心业务</span><span class="keyword">H2成长业务</span><span class="keyword">H3新兴机会</span><span class="keyword">Compete to Win</span><span class="keyword">Change the Game</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-015</span><div><h3>企业创新三种典型模式</h3><div class="section-tag">6.0</div></div></div>
+  <table>
+    <tr><th>创新模式</th><th>应用领域</th><th>关注点</th></tr>
+    <tr><td><strong>产品/服务/市场创新</strong></td><td>聚焦客户和进入市场领域</td><td>发展和发行创新产品和服务、进入新市场、寻找新客户、推行新渠道和交付路径。关注成长</td></tr>
+    <tr><td><strong>业务模式创新</strong></td><td>重建和企业扩展</td><td>发展业务运营的新方式、建立伙伴关系快速响应市场、提升业务灵活性</td></tr>
+    <tr><td><strong>运营创新</strong></td><td>改善核心职能领域</td><td>发展最佳成本结构、优化流程改进生产力、核心职能再造以提高效率。关注成本</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">产品/服务/市场创新</span><span class="keyword">业务模式创新</span><span class="keyword">运营创新</span></div>
+</div>
+
+<div id="ch7" class="chapter-title"><span class="ch-num">7.0</span>战略——业务设计</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-016</span><div><h3>业务设计六要素</h3><div class="section-tag">7.0</div></div></div>
+  <div class="content-text">业务设计应以对外部的深入理解为基础，着眼于更好地利用内部能力和持续改进与变革，探索可替代的业务设计。业务设计是战略制定的落脚点，也是迈向执行的关键。</div>
+  <table>
+    <tr><th>要素</th><th>核心问题</th></tr>
+    <tr><td><strong>客户选择</strong></td><td>谁是你的客户，谁不是？如何确定优先级？</td></tr>
+    <tr><td><strong>价值主张</strong></td><td>客户需求、独特性、有影响力</td></tr>
+    <tr><td><strong>价值获取</strong></td><td>如何赚钱？靠什么吸引客户并获取利润？</td></tr>
+    <tr><td><strong>活动范围</strong></td><td>经营活动中的角色和范围，哪些外包外购？</td></tr>
+    <tr><td><strong>持续价值增值</strong></td><td>如何保护利润？战略控制点是什么？</td></tr>
+    <tr><td><strong>风险管理</strong></td><td>不确定性识别、潜在风险评估与管理</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">业务设计</span><span class="keyword">客户选择</span><span class="keyword">价值主张</span><span class="keyword">价值获取</span><span class="keyword">活动范围</span><span class="keyword">持续价值</span><span class="keyword">风险管理</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-021</span><div><h3>业务设计是迈向执行的关键</h3><div class="section-tag">7.0</div></div></div>
+  <div class="content-text">业务设计是从战略到执行的关键转折点。需要对比现有业务设计与期望业务设计，六个要素逐一对比：客户选择、价值主张、价值获取、活动范围、价值增值、风险管理。
+
+关键检验问题：
+- 对市场的洞察力：这个业务设计所依赖的客户角度和经济上的假设是什么？
+- 战略意图：这个业务设计是否提升了公司的战略重点？
+- 创新焦点：新的业务设计能否抓住新的价值来源？这种价值来源是可持续的吗？
+- 对能力的要求：我们是否建立在现有能力上？能否获得所要的新能力？</div>
+  <div class="keywords"><span class="keyword">现有业务设计</span><span class="keyword">期望业务设计</span><span class="keyword">能力要求</span><span class="keyword">战略意图</span></div>
+</div>
+
+<div id="ch8" class="chapter-title"><span class="ch-num">8.0</span>执行——关键任务与依赖关系</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-022</span><div><h3>关键任务</h3><div class="section-tag">8.0</div></div></div>
+  <div class="content-text">关键任务：满足业务设计和它的价值主张的要求所必须的行动。
+
+关键任务的特征：
+- 支持业务设计、尤其是价值主张的实现
+- 主要是指持续性的战略举措（ongoing activity），包括业务增长举措和能力建设举措
+- 可从以下方面思考：客户管理、产品营销、产品开发、交付、平台、服务、风险管理和能力建设
+- 将重要运营流程的设计与落实包括在内
+- 是执行的其他部分的基础
+- 年度性的、可按季度跟踪衡量
+- 需识别出关键任务之间的相互依赖关系（资源、设施等）</div>
+  <div class="keywords"><span class="keyword">关键任务</span><span class="keyword">战略举措</span><span class="keyword">依赖关系</span><span class="keyword">年度跟踪</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-023</span><div><h3>相互依赖关系</h3><div class="section-tag">8.0</div></div></div>
+  <div class="content-text">内部互相依赖关系包括：供应商（与交易相关的同盟者）、外包合作伙伴、顾客与渠道、兴趣社区/团体、影响者。
+
+对每一方需要考虑：他们的兴趣和动机是什么？他们之间的协同情况如何？在不损害消费者利益的前提下，什么样的方案能够保持与供应商的双赢关系？</div>
+  <table>
+    <tr><th>维度</th><th>关键问题</th></tr>
+    <tr><td>信任</td><td>你们之间的承诺是值得依赖的吗？</td></tr>
+    <tr><td>同盟</td><td>双方是否拥有共同的目标？</td></tr>
+    <tr><td>灵活性</td><td>承诺是否能够依据需求的变化而调整？</td></tr>
+    <tr><td>权责澄清</td><td>各方的权责明晰吗？是否达成一致理解？</td></tr>
+  </table>
+  <div class="keywords"><span class="keyword">内部依赖</span><span class="keyword">外部依赖</span><span class="keyword">信任</span><span class="keyword">同盟</span><span class="keyword">灵活性</span><span class="keyword">权责</span></div>
+</div>
+
+<div id="ch9" class="chapter-title"><span class="ch-num">9.0</span>执行——正式组织</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-024</span><div><h3>正式组织</h3><div class="section-tag">9.0</div></div></div>
+  <div class="content-text">正式组织：为确保关键任务和流程能有效地执行，需建立相应的组织结构、管理和考核标准。
+
+包括：
+- 组织架构、管理体系和流程
+- 资源和权力如何在组织中分配 — 授权、行权与问责、决策流程、协作机制、信息和知识管理
+- 关键岗位的设置和能力要求
+- 管理和考核标准：管理幅度和跨度、管理与考评、奖励与激励系统、职业规划、人员和活动的物理位置</div>
+  <div class="keywords"><span class="keyword">组织架构</span><span class="keyword">管理体系</span><span class="keyword">流程</span><span class="keyword">授权</span><span class="keyword">考核标准</span><span class="keyword">奖励激励</span></div>
+</div>
+
+<div id="ch10" class="chapter-title"><span class="ch-num">10.0</span>执行——人才</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-025</span><div><h3>人才</h3><div class="section-tag">10.0</div></div></div>
+  <div class="content-text">人才：重要岗位的人员要具备相应的能力以完成出色的业绩。
+
+三个维度：思想、能力、承诺。
+
+关键问题：
+- 关键岗位和人才布局有什么要求 — 人才需求详细定义
+- 人才和能力的差距及挑战 — 欠缺哪些能力
+- 获得 — 内部获取、及时培养、外部获取
+- 激励与保留</div>
+  <div class="keywords"><span class="keyword">思想</span><span class="keyword">能力</span><span class="keyword">承诺</span><span class="keyword">关键岗位</span><span class="keyword">人才布局</span></div>
+</div>
+
+<div id="ch11" class="chapter-title"><span class="ch-num">11.0</span>执行——氛围与文化</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-026</span><div><h3>氛围与文化</h3><div class="section-tag">11.0</div></div></div>
+  <div class="content-text">氛围与文化：创造好的工作环境以激励员工完成关键任务，积极的氛围能激发人们创造出色的成绩，使得他们更加努力，并在危急时刻鼓舞他们。
+
+- 文化 — 社会管制系统、规范（价值、信念）
+- 组织氛围 — 对工作环境的感知（态度、行为）
+
+文化变革的杠杆：
+- 领导者行为 — 言行明确并始终如一
+- 信息支持 — 信息是否能够支持对的决策和对的行为
+- 奖励 — 什么行为/结果会得到奖励，奖励是否真正起到激励作用
+
+组织氛围维度：责任感、灵活性、团队承诺、明确性、标准、奖励</div>
+  <div class="keywords"><span class="keyword">文化</span><span class="keyword">组织氛围</span><span class="keyword">责任</span><span class="keyword">灵活性</span><span class="keyword">团队承诺</span><span class="keyword">明确性</span></div>
+</div>
+
+<div id="ch12" class="chapter-title"><span class="ch-num">12.0</span>领导力的角色</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-027</span><div><h3>领导力的角色</h3><div class="section-tag">12.0</div></div></div>
+  <div class="content-text">领导力的关键检验问题：
+
+风格多样性：
+- 提供清楚的方向？
+- 树立高的期望值？
+- 减少官僚作风？
+- 让个人和集体为他们的行为负责？
+- 指导个人达到良好的表现？
+
+行为示范：
+- 领导是否起到了达到结果所需的行为示范作用？
+- 领导是否培育了一种激励人心的氛围？
+
+领导力由素质和风格两个维度构成。</div>
+  <div class="keywords"><span class="keyword">领导风格多样性</span><span class="keyword">方向</span><span class="keyword">期望值</span><span class="keyword">行为示范</span><span class="keyword">激励氛围</span></div>
+</div>
+
+<div id="ch13" class="chapter-title"><span class="ch-num">13.0</span>一致性分析与根因分析</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-028</span><div><h3>一致性分析</h3><div class="section-tag">13.0</div></div></div>
+  <div class="content-text">根据业务设计的要求重新全面思考调整影响执行的各个要素，才能使战略不是纸上谈兵，而是切实保证组织的长短期收益与持续稳定的发展。</div>
+  <table>
+    <tr><th>检验关系</th><th>关键问题</th></tr>
+    <tr><td>战略&业务设计 ↔ 人才</td><td>我们有完成任务所需的技能吗？有必要的训练吗？需要找外部资源吗？</td></tr>
+    <tr><td>战略&业务设计 ↔ 关键任务</td><td>基于业务设计，是否清楚知道要完成哪些关键任务？</td></tr>
+    <tr><td>关键任务 ↔ 正式组织</td><td>组织结构支持关键活动的实施吗？评估体系与战略一致吗？</td></tr>
+    <tr><td>战略&业务设计 ↔ 文化氛围</td><td>价值支持业务方向吗？需要培养哪种文化？</td></tr>
+  </table>
+  <div class="content-text">当任何一个因素较弱或这些因素间缺乏一致性时，差距就有可能出现。</div>
+  <div class="keywords"><span class="keyword">一致性</span><span class="keyword">战略与业务设计</span><span class="keyword">关键任务</span><span class="keyword">正式组织</span><span class="keyword">人才</span><span class="keyword">文化氛围</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-029</span><div><h3>根因分析</h3><div class="section-tag">13.0</div></div></div>
+  <div class="content-text">深层原因分析目标：识别差距产生的根本原因并治本——不要只是治标。
+
+分析步骤：
+1. 弄清差距：是否都同意、理解并能齐心协力地面对差距？
+2. 直觉调查（头脑风暴）：为什么有差距？差距为什么存在？弱点在哪里？
+3. 挑战根本原因的每一种假设：为什么？为什么？为什么？
+4. 将答案分别归类到BLM的不同部分中去
+5. 检查模型的一致性，识别每一部分中最重要的问题
+6. 建立行动计划来淡化最重要的根本原因
+
+通常情况下，差距是由坏的战略造成，或者由于四部分中的一个或多个不协调造成，或是由于执行领导间不协调造成的。</div>
+  <div class="keywords"><span class="keyword">根本原因</span><span class="keyword">治本不治标</span><span class="keyword">头脑风暴</span><span class="keyword">BLM分类</span><span class="keyword">行动计划</span></div>
+</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-030</span><div><h3>解决方案优先级排序</h3><div class="section-tag">13.0</div></div></div>
+  <table>
+    <tr><th></th><th>可行性高</th><th>可行性低</th></tr>
+    <tr><td><strong>影响力高</strong></td><td>命中 — 立即行动</td><td>机会 — 评估后行动</td></tr>
+    <tr><td><strong>影响力低</strong></td><td>收获 — 简单实施</td><td>放弃 — 暂不考虑</td></tr>
+  </table>
+  <div class="content-text">影响力标准：改变明显、解决80%的问题、将简化并提升效果
+可行性标准：边界范围内、决策者可控范围、技术上可行、一定时间内合理的回报</div>
+  <div class="keywords"><span class="keyword">优先级排序</span><span class="keyword">影响力</span><span class="keyword">可行性</span><span class="keyword">命中</span><span class="keyword">收获</span><span class="keyword">放弃</span></div>
+</div>
+
+<div id="ch14" class="chapter-title"><span class="ch-num">14.0</span>业务规划模板</div>
+
+<div class="card">
+  <div class="entry-header"><span class="entry-id">BLM-031</span><div><h3>业务规划模板</h3><div class="section-tag">14.0</div></div></div>
+  <div class="content-text">业务规划模板包含以下模块：
+
+概述：使命、愿景、战略目标、SPAN、BCG/GE矩阵、FAN
+
+市场洞察：宏观分析、竞争动向、客户分析（市场/客户细分、偏好、购买习惯）
+
+业务设计：客户选择、价值主张、价值获取、活动范围、价值持续增值、业务风险管理
+
+业务方案组合战略：业务开发、业务流程、产品路线图
+
+执行：关键任务和相互依赖关系、构建组织能力、风险评估、结果衡量、关键里程碑
+
+重大项目：
+- 业绩目标：收入、利润
+- 市场渗透：份额项目
+- 市场拓展：插旗项目
+- 新品开发：山头项目
+- 双新项目
+
+预测差距：业绩差距、机会差距</div>
+  <div class="keywords"><span class="keyword">使命愿景</span><span class="keyword">战略目标</span><span class="keyword">市场洞察</span><span class="keyword">业务设计</span><span class="keyword">关键任务</span><span class="keyword">组织能力</span><span class="keyword">风险评估</span></div>
+</div>
+
+<div id="terms" class="terminology-section">
+  <h2>核心术语表</h2>
+  <div class="term-grid">
+    <div class="term-item"><span class="abbr">BLM</span><span class="desc">业务领先模型 (Business Leadership Model)</span></div>
+    <div class="term-item"><span class="abbr">业绩差距</span><span class="desc">现有经营结果和期望值之间差距的量化陈述</span></div>
+    <div class="term-item"><span class="abbr">机会差距</span><span class="desc">现有经营结果和新的业务设计所能带来结果的差距评估</span></div>
+    <div class="term-item"><span class="abbr">战略意图</span><span class="desc">组织机构的方向和最终目标</span></div>
+    <div class="term-item"><span class="abbr">市场洞察</span><span class="desc">了解客户需求、竞争者动向、技术发展和市场经济状况</span></div>
+    <div class="term-item"><span class="abbr">创新焦点</span><span class="desc">与市场同步的探索与试验，谨慎投资处理资源</span></div>
+    <div class="term-item"><span class="abbr">业务设计</span><span class="desc">利用内部能力和战略控制点探索可替代的业务设计</span></div>
+    <div class="term-item"><span class="abbr">关键任务</span><span class="desc">满足业务设计和价值主张要求的必须行动</span></div>
+    <div class="term-item"><span class="abbr">正式组织</span><span class="desc">确保关键任务和流程有效执行的组织结构、管理和考核标准</span></div>
+    <div class="term-item"><span class="abbr">$APPEALS</span><span class="desc">客户购买标准8个方面的缩略语</span></div>
+    <div class="term-item"><span class="abbr">H1/H2/H3</span><span class="desc">三个成长地平线：核心业务/成长业务/新兴机会</span></div>
+    <div class="term-item"><span class="abbr">SPAN</span><span class="desc">战略地位分析</span></div>
+    <div class="term-item"><span class="abbr">BCG矩阵</span><span class="desc">波士顿咨询集团增长份额矩阵</span></div>
+    <div class="term-item"><span class="abbr">GE矩阵</span><span class="desc">通用电气业务Screen矩阵</span></div>
+    <div class="term-item"><span class="abbr">FAN</span><span class="desc">财务分析</span></div>
+    <div class="term-item"><span class="abbr">TAM</span><span class="desc">总可用市场 (Total Available Market)</span></div>
+    <div class="term-item"><span class="abbr">SAM</span><span class="desc">可服务可用市场 (Serviceable Available Market)</span></div>
+    <div class="term-item"><span class="abbr">TM</span><span class="desc">目标市场 (Target Market)</span></div>
+    <div class="term-item"><span class="abbr">CAGR</span><span class="desc">年度复合增长率</span></div>
+    <div class="term-item"><span class="abbr">ROIC</span><span class="desc">投入资本回报率</span></div>
+    <div class="term-item"><span class="abbr">CSR</span><span class="desc">企业社会责任</span></div>
+    <div class="term-item"><span class="abbr">Ambidextrous</span><span class="desc">左右开弓的组织——同时管理今天和明天的业务</span></div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  清洗后知识库数据 | 源自：IBM业务领先模型.ppt（67页）| 清洗后：31条知识条目 + 22个核心术语
+</footer>
+
+</body>
+</html>

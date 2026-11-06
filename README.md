@@ -1,17 +1,76 @@
-# 自建向量库 + Ragas 评测全流程
+# KnowledgeBase · 本地 RAG 问答与评测
 
-一套**纯 numpy 向量库 + Ragas 打分**的本地 RAG 评测工具链，用来回答一个问题：
-**改了一个参数，分数到底变好了没有？**
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![Ragas](https://img.shields.io/badge/Ragas-0.4.3-1f6feb)
+![Ollama](https://img.shields.io/badge/Ollama-local-000000?logo=ollama&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-2ea043)
 
-📚 **先看哪个文档？**
+**一套可复现、可解释、可归因的本地 RAG 评测工具链。**
+Ollama 跑模型 + 纯 numpy 暴力余弦 + Ragas 四指标，**不依赖 LangChain、不依赖向量数据库**。
+
+它只回答一个问题：**改了一个参数，分数到底变好了没有？**
+
+![前端界面](assets/前端界面图.png)
+
+## ✨ 它解决什么
+
+| 常见困境 | 这套工具怎么做 |
+|---|---|
+| 界面只给文件名，看不到检索到的原文 | 检索结果就是代码变量，四个指标全能算 |
+| 调参靠感觉，改完不知道有没有变好 | 每次实验写一行存档，历史表 / 走势图 / 最近两次差值都能看 |
+| 分数掉了，不知道是检索的锅还是生成的锅 | 检索侧与生成侧指标分开；还能只重算检索两项 |
+| 调一个参数要等一小时 | 「快速检索实验」**2~10 分钟**出结果（不重新生成回答） |
+
+## 🔢 实测数字（20 题 / 398 块 / 纯 CPU / 云端评委）
+
+| 配置 | context_recall | context_precision | 备注 |
+|---|---|---|---|
+| TOP_K=5 · rerank 开（**v4 基线**） | **0.953** | 0.829 | bge-m3 + bge-reranker-v2-m3 |
+| rerank 关 | 0.859（−0.068） | 0.704（**−0.196**） | 省 6 分钟，精度掉两成 |
+| RETRIEVE_K 20→12 | 0.885 | 0.779（**−0.122**） | 候选池是 rerank 的原料 |
+
+> 12 组参数对照、逐题差异、严格口径修正 → [实验结果](doc/实验结果.md)
+
+## 🧱 技术选型（以及为什么不选更主流的）
+
+| 环节 | 选了什么 | 为什么不是替代方案 |
+|---|---|---|
+| 向量检索 | **numpy 暴力余弦** | 几百块规模是毫秒级；不需要 chromadb/FAISS 的依赖与黑盒 |
+| 精排 | **bge-reranker-v2-m3**（本地） | 不上服务化 rerank：失败可自动降级为纯向量，不中断流程 |
+| 关键词召回 | **自写 BM25 + RRF 融合** | 不装 jieba（字符二元组足够），融合只看名次、不看分数 |
+| 评测 | **Ragas 0.4.3 + openai 客户端** | 不走 langchain：避免版本地狱，直接用 Ollama 的 `/v1` |
+| 界面 | **Streamlit** | 纯 Python 单文件迭代；参数改动与 CLI 共享同一份配置 |
+
+## 📚 文档
 
 | 文档 | 适合谁 | 内容 |
 |---|---|---|
 | [使用说明](doc/使用说明.md) | 想跑起来的人 | 装什么、跑什么命令、界面怎么用、出问题怎么查 |
 | [参数手册](doc/参数手册.md) | 想调参的人 | 每个参数的作用 / 取值 / 影响 / 坑，以及实验台账 |
-| [项目报告](doc/项目报告.md) | 想了解全貌的人 | 背景 / 架构 / 选型 / 踩坑 / 评测结果 / 产品结论 |
+| [项目报告](doc/项目报告.md) | 想了解全貌的人 | 背景 / 架构 / 选型 / 踩坑 / 评测结果 / 产品视角结论 |
 | [实验结果](doc/实验结果.md) | 想看数据的人 | 12 组参数对照、严格口径修正、v4 基线 |
-| [踩坑全录](doc/RAG评测踩坑全录.md) | 想少走弯路的人 | 45 条坑 + 45 个取舍，按"认知→环境→数据→模型→指标→工程"分层 |
+| [踩坑全录](doc/RAG评测踩坑全录.md) | 想少走弯路的人 | 45 条坑 + 取舍逻辑，按"认知→环境→数据→模型→指标→工程"分层 |
+
+## 🚀 三步跑起来
+
+```powershell
+# 1) 环境（Python 3.11+，另需装好 Ollama 并 pull 模型）
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# 2) 建库 + 跑题 + 打分
+.\\.venv\\Scripts\\python.exe build_index.py
+.\\.venv\\Scripts\\python.exe run_batch.py
+.\\.venv\\Scripts\\python.exe run_eval.py
+
+# 3) 打开界面（Windows 可直接双击 启动控制台.bat）
+.\\.venv\\Scripts\\python.exe -m streamlit run app.py
+```
+
+> 模型默认：`bge-m3`（embedding）· `qwen3:8b`（生成）· `gemma4:31b-cloud`（评委）。
+> 全部参数在 `config.py`，改一个数字就能做一次对照实验。
+
+---
 
 ## 0. 它和 Open WebUI 的关系
 
@@ -31,7 +90,7 @@
 ## 1. 目录结构
 
 ```
-knowbase/
+knowledgebase/
 ├── config.py              ⭐ 所有参数都在这里，调参只改这一个文件
 ├── build_index.py         ① 建库（改了 chunk / embedding 才需要重跑）
 ├── run_batch.py           ② 批量跑题 → 生成数据集
@@ -82,7 +141,7 @@ knowbase/
 ## 2. 安装
 
 ```powershell
-cd knowbase
+cd knowledgebase
 .venv\Scripts\activate
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 

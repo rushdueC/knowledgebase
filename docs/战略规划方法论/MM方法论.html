@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场管理(MM)概览 — 清洗后知识库数据</title>
+<style>
+:root {
+  --primary: #1E2761;
+  --secondary: #3C5A99;
+  --accent: #00A896;
+  --bg: #F0F4FA;
+  --card-bg: #FFFFFF;
+  --text: #2D3748;
+  --text-muted: #718096;
+  --border: #E2E8F0;
+  --tag-bg: #EBF4FF;
+  --tag-text: #2B6CB0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+header h1 { font-size: 28px; margin-bottom: 8px; }
+header .subtitle { font-size: 14px; opacity: .85; margin-bottom: 4px; }
+header .meta { font-size: 13px; opacity: .7; }
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+.stat-item { text-align: center; }
+.stat-item .num { font-size: 24px; font-weight: 700; color: var(--primary); }
+.stat-item .label { font-size: 12px; color: var(--text-muted); }
+/* Nav */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+nav a {
+  font-size: 12px;
+  text-decoration: none;
+  color: var(--secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all .15s;
+  white-space: nowrap;
+}
+nav a:hover { background: var(--tag-bg); color: var(--primary); }
+/* Container */
+.container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+/* Chapter heading */
+.chapter-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 40px 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--accent);
+}
+.chapter-title .ch-num {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+/* Card */
+.card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: var(--shadow-hover); }
+.card .entry-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.card .entry-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: #E6FFFA;
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.card h3 { font-size: 16px; color: var(--primary); line-height: 1.4; }
+.card .section-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.card .content-text {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.8;
+  margin: 12px 0;
+  white-space: pre-wrap;
+}
+.card .keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.card .keyword {
+  font-size: 11px;
+  color: var(--tag-text);
+  background: var(--tag-bg);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+/* Terminology */
+.terminology-section {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow);
+}
+.terminology-section h2 {
+  font-size: 20px;
+  color: var(--primary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+.term-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.term-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.term-item .abbr {
+  font-weight: 700;
+  color: var(--secondary);
+  font-size: 13px;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+.term-item .desc { font-size: 12px; color: var(--text-muted); }
+/* Footer */
+footer {
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--text-muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  header { padding: 32px 16px; }
+  header h1 { font-size: 22px; }
+  .card { padding: 16px; }
+  .container { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>市场管理(MM)概览 — 清洗后知识库数据</h1>
+  <div class="subtitle">楚云星天管理科技（深圳）有限责任公司</div>
+  <div class="meta">源文件：MM-AGC 修改中.pptx | 共205页幻灯片 | 清洗后53条知识条目</div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="num">9</div><div class="label">章节</div></div>
+  <div class="stat-item"><div class="num">53</div><div class="label">知识条目</div></div>
+  <div class="stat-item"><div class="num">205</div><div class="label">原始幻灯片</div></div>
+  <div class="stat-item"><div class="num">38</div><div class="label">专业术语</div></div>
+</div>
+
+<nav>
+  <a href="#ch1">1.0 概述</a>
+  <a href="#ch2">2.0 角色</a>
+  <a href="#ch3">3.0 理解市场</a>
+  <a href="#ch4">4.0 市场细分</a>
+  <a href="#ch5">5.0 组合分析</a>
+  <a href="#ch6">6.0 策略计划</a>
+  <a href="#ch7">7.0 融合优化</a>
+  <a href="#ch8">8.0 管理评估</a>
+  <a href="#ch9">9.0 参考</a>
+  <a href="#terms">术语表</a>
+</nav>
+
+<div class="container">
+
+<!-- Chapter 1.0 -->
+<div id="ch1" class="chapter-title"><span class="ch-num">1.0</span>市场管理流程六个步骤概述</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-001</span>
+    <div>
+      <h3>市场管理的定义与价值实现六个领域</h3>
+      <div class="section-tag">1.0</div>
+    </div>
+  </div>
+  <div class="content-text">市场管理是一种系统的方法，用于对广泛的机会进行选择收缩，制定出一套以市场为中心的、能够带来最佳业务成果的战略与计划。市场管理在协调价值实现的六个领域起着非常重要的作用，这六个领域是：选择价值、创造价值、提取价值、宣传价值、交付价值和理解价值。
+
+市场管理流程的目的是为公司所有产品线、产品族及产品营销计划实现价值创造提供一致的分析，使公司能够通过明智的投资创造最大的价值。
+
+六个价值领域：
+①选择价值：市场管理活动为战略及产品线规划，非营销活动为财务和战略
+②创造价值：市场管理活动为产品包管理和产品线管理，非营销活动为开发
+③提取价值：市场管理活动为产品包管理和产品线管理，非营销活动为财务
+④宣传价值：市场管理活动为渠道启动和产品线管理，非营销活动为宣传和销售与技术支援渠道
+⑤交付价值：市场管理活动为渠道启动和产品线管理，非营销活动为销售与技术支援渠道
+⑥理解价值：市场管理活动为战略及产品线规划，非营销活动为财务和战略</div>
+  <div class="keywords">
+    <span class="keyword">价值实现六个领域</span><span class="keyword">选择价值</span><span class="keyword">创造价值</span><span class="keyword">提取价值</span><span class="keyword">宣传价值</span><span class="keyword">交付价值</span><span class="keyword">理解价值</span><span class="keyword">协调价值实现活动</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-002</span>
+    <div>
+      <h3>市场管理流程的本质——业务流程</h3>
+      <div class="section-tag">1.0</div>
+    </div>
+  </div>
+  <div class="content-text">市场管理规划的目的是为整个公司的价值创造活动提供一致的分析。核心问题包括：公司的投资如何分配到各产品线是最明智的？公司将如何作出决策？
+
+市场管理流程是一道业务流程，它运用严格、规范的方法对市场走势及业务要求及需求进行分析，创建合理的市场细分规则，对要投资和取得领先地位的细分市场进行选择和优先级排序，从而制定可执行的业务计划。</div>
+  <div class="keywords">
+    <span class="keyword">投资分配决策</span><span class="keyword">业务流程</span><span class="keyword">市场细分规则</span><span class="keyword">优先级排序</span><span class="keyword">可执行业务计划</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-005</span>
+    <div>
+      <h3>市场管理流程六个主要步骤</h3>
+      <div class="section-tag">1.1</div>
+    </div>
+  </div>
+  <div class="content-text">市场管理流程活动可分成以下六个主要步骤：
+1. 了解市场
+2. 进行市场细分
+3. 进行组合分析
+4. 制定业务战略和计划
+5. 跨产品线融合和优化业务计划
+6. 管理业务计划，评估绩效
+
+流程目的：通过该流程，及时、有效地将市场需求转化为领先的产品包/解决方案，满足或超出客户期望。</div>
+  <div class="keywords">
+    <span class="keyword">六步骤</span><span class="keyword">了解市场</span><span class="keyword">市场细分</span><span class="keyword">组合分析</span><span class="keyword">业务战略和计划</span><span class="keyword">跨产品线融合</span><span class="keyword">评估绩效</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-010</span>
+    <div>
+      <h3>业务计划框架</h3>
+      <div class="section-tag">1.5</div>
+    </div>
+  </div>
+  <div class="content-text">业务计划架构由互为补充的七个部分组成：
+
+核心要素：产品包、定价/条款、分销、综合营销宣传
+运营要素：支持/技能、履行
+评估要素：绩效评估与风险评估
+
+支持三种结构类似的业务计划：产品线业务计划(PLBP)、细分市场业务计划(SBP)、产品包/解决方案业务计划(O/SBP)。
+
+组织与业务计划的融合：公司→业务部业务计划、产品线→产品线业务计划、细分市场→细分市场业务计划、产品包/解决方案→产品包/解决方案业务计划</div>
+  <div class="keywords">
+    <span class="keyword">业务计划框架</span><span class="keyword">七个部分</span><span class="keyword">PLBP</span><span class="keyword">SBP</span><span class="keyword">O/SBP</span><span class="keyword">核心要素</span><span class="keyword">运营要素</span><span class="keyword">评估要素</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-011</span>
+    <div>
+      <h3>三种业务计划的使用</h3>
+      <div class="section-tag">1.6</div>
+    </div>
+  </div>
+  <div class="content-text">1. 产品线业务计划（PLBP）：记录产品线所参与的市场情况，在产品线内优化计划组合，确保组合满足或超过产品线的绩效目标。
+
+2. 细分市场业务计划（SBP）：跨多个产品线的细分市场的业务计划，用于记录能够驱动细分市场中业绩的战略、计划和主要产品包/解决方案。
+
+3. 产品包/解决方案业务计划（O/SBP）：完成分两个阶段——初始产品包/解决方案业务计划（IO/SBP）和最终产品包/解决方案业务计划。IO/SBP形成于市场管理流程，通过IPMT审批，在IPD流程中由PDT最终定稿。一旦IO/SBP审批通过，便组建PDT，开始最终O/SBP的工作。</div>
+  <div class="keywords">
+    <span class="keyword">PLBP</span><span class="keyword">SBP</span><span class="keyword">O/SBP</span><span class="keyword">IO/SBP</span><span class="keyword">PDT</span><span class="keyword">IPD流程</span>
+  </div>
+</div>
+
+<!-- Chapter 2.0 -->
+<div id="ch2" class="chapter-title"><span class="ch-num">2.0</span>市场管理流程角色</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-013</span>
+    <div>
+      <h3>市场管理流程角色概述</h3>
+      <div class="section-tag">2.0</div>
+    </div>
+  </div>
+  <div class="content-text">角色定义了市场管理流程中的角色，不是描述营销职业生涯中的职业、岗位或头衔，而是描述流程所定义的角色。角色应该由内部或外部掌握有营销技能的合格个体来执行。
+
+主要角色：
+1. 集成组合管理团队（IPMT）角色
+2. 市场管理协调员（MMC）角色
+3. 市场分析（MA）角色
+4. 财务分析（FA）角色
+5. 组合管理团队（PMT）角色
+
+流程角色并不等同于岗位头衔，任何受过正规培训的营销专业人员任何时间都能执行流程角色。</div>
+  <div class="keywords">
+    <span class="keyword">IPMT</span><span class="keyword">MMC</span><span class="keyword">MA</span><span class="keyword">FA</span><span class="keyword">PMT</span><span class="keyword">角色与岗位的区别</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-014</span>
+    <div>
+      <h3>集成组合管理团队（IPMT）角色</h3>
+      <div class="section-tag">2.0</div>
+    </div>
+  </div>
+  <div class="content-text">IPMT角色负责产品线、细分市场或产品包/解决方案层次的产品包组合在全球的业绩。由代表全球硬件和软件开发、营销、销售、生产/订单履行、采购、财务和其他功能领域的高层人员组成。
+
+核心职责：作出持续业务投资决策、开展审批和高层决策活动、通过正式的决策评审合理进行产品线组合、负责及时解决跨产品线项目问题、将营销和业务计划与产品包开发相融合、在IPD决策评审点分配资源给PDT、激励和管理PDT的绩效。</div>
+  <div class="keywords">
+    <span class="keyword">IPMT</span><span class="keyword">产品包组合</span><span class="keyword">投资决策</span><span class="keyword">IRB</span><span class="keyword">PDT管理</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-017</span>
+    <div>
+      <h3>市场分析（MA）角色的子角色</h3>
+      <div class="section-tag">2.0</div>
+    </div>
+  </div>
+  <div class="content-text">MA角色可进一步分为以下子角色：
+1. 竞争性/竞争对手分析和市场情报
+2. 市场细分
+3. 市场需求（管理市场调研项目，执行需求管理流程5个步骤中的前3个）
+4. 客户情报分析
+5. 销售渠道/业务伙伴
+6. 解决方案开发
+7. 联盟发展
+8. 计划员（规划产品系统管理需求）
+9. 技术（技术需求和新技术）
+
+MA角色负责调查和分析产品包、竞争、经济/人口和市场调研的数据，向IPMT和PMT提供支撑和建议。</div>
+  <div class="keywords">
+    <span class="keyword">MA</span><span class="keyword">竞争分析</span><span class="keyword">市场细分</span><span class="keyword">市场需求</span><span class="keyword">客户情报</span><span class="keyword">联盟发展</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-018</span>
+    <div>
+      <h3>组合管理团队（PMT）角色</h3>
+      <div class="section-tag">2.0</div>
+    </div>
+  </div>
+  <div class="content-text">PMT角色负责定义所选细分市场的市场细分架构，确定组合模型的标准和权重，使用组合分析数据对子细分市场进行优先排序，负责制定业务战略和计划。
+
+3类资源执行PMT角色：
+1. 营销副总裁——制定集团或范畴的战略计划
+2. 营销副总裁或营销经理——制定产品线和/或细分市场的战略计划
+3. 营销经理——制定具体产品包/解决方案的战略计划
+
+在各步骤中的参与：步骤1（了解市场）竞争分析和市场需求角色起重要作用；步骤2（进行市场细分）由市场细分角色完成；其余步骤所有MA和FA角色参与。</div>
+  <div class="keywords">
+    <span class="keyword">PMT</span><span class="keyword">市场细分架构</span><span class="keyword">组合模型</span><span class="keyword">优先排序</span><span class="keyword">三类资源</span>
+  </div>
+</div>
+
+<!-- Chapter 3.0 -->
+<div id="ch3" class="chapter-title"><span class="ch-num">3.0</span>理解市场</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-019</span>
+    <div>
+      <h3>理解市场——概述</h3>
+      <div class="section-tag">3.0</div>
+    </div>
+  </div>
+  <div class="content-text">这一步骤用于对市场进行概要描述，包括了解和评估市场的经济、行业、竞争对手、客户和产品线机会。
+
+目的：促进IPMT加强对自己所运作的环境的了解，并对该环境进行明确描述，有助于产品线细分市场并进行优先排序。
+
+主要角色：IPMT（定义愿景、使命和目标）；MA（第二重要角色，进行市场环境分析）；MMC。
+
+活动：A. 定义和整合使命和目标（IPMT）；B. 进行市场分析（MA）
+
+输出：归档的产品线愿景、使命和目标；市场评估文档。
+
+使能器：宏观环境分析、竞争分析、公司自身分析、市场分析、SWOT分析、市场地图、业务设计</div>
+  <div class="keywords">
+    <span class="keyword">理解市场</span><span class="keyword">PL-IPMT</span><span class="keyword">市场评估文档</span><span class="keyword">使命与目标</span><span class="keyword">环境分析</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-021</span>
+    <div>
+      <h3>进行市场分析——四个分析维度</h3>
+      <div class="section-tag">3.2</div>
+    </div>
+  </div>
+  <div class="content-text">市场评估包含四个分析维度：
+
+1. 环境分析：政治、经济、社会、技术
+2. 竞争分析：了解主要竞争对手，确定能力和意图，可使用波特五种力量模型（供应商议价能力、现存公司间竞争、购买者议价能力、新入行者威胁、替代产品威胁）
+3. 公司自身分析：关注4个方面——本年度和三年目标、财务状况、产品生命周期(PLC)、组合
+4. 市场分析：确定市场驱动力和主要趋势，关注市场规模、增长、特点、客户细分需求、购买者行为、中介和价值网</div>
+  <div class="keywords">
+    <span class="keyword">环境分析</span><span class="keyword">竞争分析</span><span class="keyword">波特五力模型</span><span class="keyword">公司自身分析</span><span class="keyword">市场分析</span><span class="keyword">PLC</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-024</span>
+    <div>
+      <h3>市场地图</h3>
+      <div class="section-tag">3.2</div>
+    </div>
+  </div>
+  <div class="content-text">根据对竞争市场的分析和了解，团队描绘出市场上产品的流动情况——即市场地图。记录了在定义市场上作出购买决策的所有重要阶段。
+
+市场地图定义了市场动力、制造商与最终用户间的价值链，考虑了各种购买机制，包括与分销渠道和影响者有关的部分。重点突出了直接销售和通过渠道分销的产品量和价值，指出拓展市场的潜在机会。</div>
+  <div class="keywords">
+    <span class="keyword">市场地图</span><span class="keyword">价值链</span><span class="keyword">购买机制</span><span class="keyword">分销渠道</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-025</span>
+    <div>
+      <h3>业务设计评估</h3>
+      <div class="section-tag">3.2</div>
+    </div>
+  </div>
+  <div class="content-text">业务设计关注四个领域：
+1. 客户选择和价值定位：可以为哪些客户增加实际价值并可以盈利？
+2. 价值获取/利润模型：如何获取所创造的一部分价值作为利润？
+3. 差异/战略控制：客户为什么购买？价值陈述与竞争对手的差异？战略控制点是什么？
+4. 范围：要卖什么产品、服务和解决方案？哪些活动自己执行，哪些与合作伙伴执行？
+组织体系：什么样的组织体系能提供最好的支持？</div>
+  <div class="keywords">
+    <span class="keyword">业务设计</span><span class="keyword">客户选择</span><span class="keyword">利润模型</span><span class="keyword">战略控制点</span><span class="keyword">范围</span>
+  </div>
+</div>
+
+<!-- Chapter 4.0 -->
+<div id="ch4" class="chapter-title"><span class="ch-num">4.0</span>进行市场细分</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-026</span>
+    <div>
+      <h3>进行市场细分——概述</h3>
+      <div class="section-tag">4.0</div>
+    </div>
+  </div>
+  <div class="content-text">确定结构来进一步分析市场、收集信息，对机会进行排序和选择。产品线必须使用一致的细分变量和评估标准。
+
+所定义的细分市场必须满足：独特性、重要性、可衡量性、持久性和可识别性要求。
+
+输出：批准的市场细分框架、初步选定的细分市场、每个所选细分市场的概貌、初始客户$APPEALS分析、公司和竞争对手产品与每个细分市场映射。</div>
+  <div class="keywords">
+    <span class="keyword">市场细分</span><span class="keyword">独特性</span><span class="keyword">重要性</span><span class="keyword">可衡量性</span><span class="keyword">持久性</span><span class="keyword">可识别性</span><span class="keyword">$APPEALS</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-028</span>
+    <div>
+      <h3>市场细分流程七步骤</h3>
+      <div class="section-tag">4.1</div>
+    </div>
+  </div>
+  <div class="content-text">第1步：审视市场细分框架——从公司高层获得指导，预期80:20的Pareto效果
+第2步：确定谁购买——建议数量控制在最多10个以内
+第3步：确定买什么——列出所有重要产品/产品包，找出10-15种模式
+第4步：确定谁买什么——将每个谁与真正重要的买什么组合，减少到12-15个最有吸引力的初步细分市场
+第5步：判断为什么购买——分析客户行为，关注基于需要的好处
+第6步：确定主要细分市场——描述并解释对大约10个细分市场的选择原因
+第7步：测试可行性——验证独特性、重要性、可衡量性、持久性和可识别性</div>
+  <div class="keywords">
+    <span class="keyword">七步骤</span><span class="keyword">Pareto效果</span><span class="keyword">微型细分市场</span><span class="keyword">好处分类</span><span class="keyword">可行性测试</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-029</span>
+    <div>
+      <h3>客户$APPEALS框架</h3>
+      <div class="section-tag">4.2</div>
+    </div>
+  </div>
+  <div class="content-text">$APPEALS是八类购买标准的缩略语：
+$ - 价格 (Dollars)
+A - 可获得性 (Availability)
+P - 包装 (Packaging)
+P - 性能 (Performance)
+E - 易用性 (Ease of Use)
+A - 保证 (Assurances)
+L - 生命周期成本 (Life Cycle Cost)
+S - 社会接受程度 (Social Acceptance)
+
+$APPEALS框架能够使团队：处理目标细分市场的全部客户欲望与需要；建立客户驱动的需求集；确定主要分界标准；确定促使客户选择产品包的主要差异。</div>
+  <div class="keywords">
+    <span class="keyword">$APPEALS</span><span class="keyword">价格</span><span class="keyword">可获得性</span><span class="keyword">包装</span><span class="keyword">性能</span><span class="keyword">易用性</span><span class="keyword">保证</span><span class="keyword">生命周期成本</span><span class="keyword">社会接受程度</span>
+  </div>
+</div>
+
+<!-- Chapter 5.0 -->
+<div id="ch5" class="chapter-title"><span class="ch-num">5.0</span>进行组合分析</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-031</span>
+    <div>
+      <h3>SPAN四种宏观战略态势</h3>
+      <div class="section-tag">5.1</div>
+    </div>
+  </div>
+  <div class="content-text">可用两个维度评估每个细分市场：市场吸引力和竞争地位。
+
+1. 增长/投资：细分市场有吸引力且有很强竞争优势。应扩大分销、扩大生产投资、继续研发投资、加大营销。
+
+2. 获取技能：有吸引力但竞争优势较弱。应限制分销覆盖面、对生产研发和人力投资、积极定价促销以获得市场份额。
+
+3. 收获/重新划分：没有吸引力但有很强竞争优势。应维持现有分销、重点运作效率、限制营销活动、研发重点放在降低成本。
+
+4. 避免/退出：没有吸引力且竞争优势较弱。应逐渐撤销分销、大力削减成本、减少或停止产能和研发费用。</div>
+  <div class="keywords">
+    <span class="keyword">SPAN</span><span class="keyword">增长/投资</span><span class="keyword">获取技能</span><span class="keyword">收获/重新细分</span><span class="keyword">避免/退出</span><span class="keyword">市场吸引力</span><span class="keyword">竞争地位</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-032</span>
+    <div>
+      <h3>SPAN市场吸引力评估要素</h3>
+      <div class="section-tag">5.1</div>
+    </div>
+  </div>
+  <div class="content-text">四个要素评估市场吸引力：
+1. 市场规模：反映相对收入机会
+2. 市场增长率：以后三年的年度复合增长率(CAGR)
+3. 利润潜力：三个子要素——直接/间接竞争、进入威胁、客户/供应商压力
+4. 战略价值：对产品线和整个公司的战略价值/重要性
+
+权重系数之和为100。高、中、低评分转换为5、3、1分数后乘以权重系数，得到市场吸引力得分。</div>
+  <div class="keywords">
+    <span class="keyword">市场吸引力</span><span class="keyword">市场规模</span><span class="keyword">增长率</span><span class="keyword">利润潜力</span><span class="keyword">战略价值</span><span class="keyword">权重系数</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-035</span>
+    <div>
+      <h3>财务分析（FAN）</h3>
+      <div class="section-tag">5.1</div>
+    </div>
+  </div>
+  <div class="content-text">FAN对比每个细分市场的预期收益比例和累计收入：
+
+收益比例：内部收益率(IRR)是税前利润(PTI)或现金流与产品包的比率。
+累计收入：基于每个产品包收入的预期收入，可衡量运营现金流出。
+
+SPAN和FAN相辅相成：
+- FAN回答：是否在所服务的细分市场赚钱？回报是否超过资本成本？
+- SPAN回答：该细分市场的吸引力有多大？产品包定位得怎么样？
+
+当前的SPAN和FAN地位可用来作为基线，预测战略行动的结果。</div>
+  <div class="keywords">
+    <span class="keyword">FAN</span><span class="keyword">IRR</span><span class="keyword">PTI</span><span class="keyword">累计收入</span><span class="keyword">最低投资回报率</span><span class="keyword">基线预测</span>
+  </div>
+</div>
+
+<!-- Chapter 6.0 -->
+<div id="ch6" class="chapter-title"><span class="ch-num">6.0</span>制定业务策略和计划</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-037</span>
+    <div>
+      <h3>安索夫矩阵</h3>
+      <div class="section-tag">6.1</div>
+    </div>
+  </div>
+  <div class="content-text">安索夫矩阵通过评估增长策略选择，为支持目标提供框架。两个维度：市场/细分市场的新旧和产品/技术的新旧。
+
+四类营销目标：
+1. 市场渗透：现有市场上出售现有产品（快速、低风险、低成本）
+2. 市场开发：将现有产品卖到新市场（较缓慢、风险较大）
+3. 产品开发：向现有市场出售新产品（研发投入）
+4. 多样化：向新市场出售新产品（高风险、昂贵）
+
+缺口分析两个方面：运作缺口（改进效率和市场渗透）、新策略上的缺口（市场开发、产品开发和多样化）。</div>
+  <div class="keywords">
+    <span class="keyword">安索夫矩阵</span><span class="keyword">市场渗透</span><span class="keyword">市场开发</span><span class="keyword">产品开发</span><span class="keyword">多样化</span><span class="keyword">缺口分析</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-038</span>
+    <div>
+      <h3>技术生命周期（TLC）</h3>
+      <div class="section-tag">6.1</div>
+    </div>
+  </div>
+  <div class="content-text">引自Geoffrey A. Moore的教材。关键概念：
+- 早期市场：技术热衷者和幻想家
+- 跨越裂谷：必须开发完整产品来满足特定需求
+- 保龄球道：让邻近的客户接受产品，利用成功来推进
+- 龙卷风：产品全面集成和便宜，吸引主流市场
+- 大道：运作优化成为关注重点
+
+在生命周期不同阶段，价值有区别，影响策略：
+- 早期市场：技术领先、特性、好处、质量
+- 保龄球道：客户亲密关系、质量、支持、可靠性
+- 龙卷风和大道：运作优化、最低成本、本地渠道、最低价格</div>
+  <div class="keywords">
+    <span class="keyword">TLC</span><span class="keyword">跨越裂谷</span><span class="keyword">保龄球道</span><span class="keyword">龙卷风</span><span class="keyword">大道</span><span class="keyword">完整产品</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-039</span>
+    <div>
+      <h3>利润区与业务设计</h3>
+      <div class="section-tag">6.1</div>
+    </div>
+  </div>
+  <div class="content-text">利润区采用以客户为中心的业务设计。业务设计五个领域：
+1. 客户选择和价值定位
+2. 价值获取/利润模型
+3. 差异/战略控制
+4. 范围
+5. 组织体系
+
+22种利润模型包括：客户发掘模型、产品金字塔模型、多部件利润模型、配电盘模型、速度利润模型、卖座大片模型、利润倍增模型、创业式利润模型、专业化利润模型、基础产品模型、行业标准模型、品牌模型、独特产品模型、地区领先模型、大额交易模型、价值链定位模型、周期性利润模型、售后利润模型、新产品利润模型、相对市场份额利润模型、经验曲线型利润模型、低成本业务设计利润模型。</div>
+  <div class="keywords">
+    <span class="keyword">利润区</span><span class="keyword">业务设计</span><span class="keyword">五个领域</span><span class="keyword">22种利润模型</span><span class="keyword">价值链</span><span class="keyword">战略控制</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-041</span>
+    <div>
+      <h3>制定战略意图——四步骤</h3>
+      <div class="section-tag">6.2</div>
+    </div>
+  </div>
+  <div class="content-text">第1步：归档并评估准备性指示——收入差距、SWOT、SPAN、$APPEALS差距等
+第2步：制定战略意图陈述——针对每个细分市场描述如何取得最佳业绩，不超过60个字
+第3步：为每个细分市场制定价值陈述——回答客户为什么购买，包含7要素：目标客户、需求、产品名称、类别、主要优势、竞争对手产品、差异化优势
+第4步：根据业务计划要素制定策略——三种成功策略：成本领导者、产品包差异化优势、专注于客户的营销</div>
+  <div class="keywords">
+    <span class="keyword">战略意图</span><span class="keyword">准备性指示</span><span class="keyword">价值陈述</span><span class="keyword">七要素</span><span class="keyword">成本领导者</span><span class="keyword">差异化</span>
+  </div>
+</div>
+
+<!-- Chapter 7.0 -->
+<div id="ch7" class="chapter-title"><span class="ch-num">7.0</span>跨产品线融合和优化业务计划</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-044</span>
+    <div>
+      <h3>组合决策标准(PDC)——六步流程</h3>
+      <div class="section-tag">7.1</div>
+    </div>
+  </div>
+  <div class="content-text">PDC是根据一致确定的决策标准对不同产品包进行优先级划分的方法：
+
+第1步：确定优先级排序框架——安索夫产品模型分类、确定评估属性（市场吸引力、竞争地位、财务）、分配权重
+第2步：确定所有可能的项目——列出所有建议的产品包（新的和老的）
+第3步：将项目分成不同群组——市场渗透/扩展、产品开发、市场培育、多样化
+第4步：给产品包评级——使用高-中-低标准，输入PDC模型获得得分
+第5步：明确依赖关系——只确定技术依赖性
+第6步：在路标内排序——制定截止线，画出产品包路标
+
+四类结果：买进、持有、观望、卖掉</div>
+  <div class="keywords">
+    <span class="keyword">PDC</span><span class="keyword">安索夫产品模型</span><span class="keyword">优先级排序</span><span class="keyword">依赖关系</span><span class="keyword">买进</span><span class="keyword">持有</span><span class="keyword">观望</span><span class="keyword">卖掉</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-045</span>
+    <div>
+      <h3>跨产品线融合与优化</h3>
+      <div class="section-tag">7.2</div>
+    </div>
+  </div>
+  <div class="content-text">确保公司层面的资源协调整合。IRB是跨不同产品线分配资源的决策主体。
+
+活动：每个产品线完成PDC排序和路标后向IRB请求资源；IRB评审所有路标后从全公司进度排序；制定整体产品包优先级排序清单；根据排序决定资源分配；通过汇总组合对整个组合有完整了解；可进行情景分析确定重新分配资源的结果；确保跨产品线产品包的责任落实和资源匹配。</div>
+  <div class="keywords">
+    <span class="keyword">跨产品线</span><span class="keyword">IRB</span><span class="keyword">资源分配</span><span class="keyword">情景分析</span><span class="keyword">跨产品线产品包</span>
+  </div>
+</div>
+
+<!-- Chapter 8.0 -->
+<div id="ch8" class="chapter-title"><span class="ch-num">8.0</span>管理业务计划，评估绩效</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-047</span>
+    <div>
+      <h3>IO/SBP与任务书</h3>
+      <div class="section-tag">8.1</div>
+    </div>
+  </div>
+  <div class="content-text">IO/SBP（初始产品包/解决方案业务计划）包括8个章节：概述、了解市场、整体产品包/解决方案策略、产品包概述、财务评估、项目进度和资源、风险评估和管理、建议和替代方案。
+
+任务书背景材料有3个章节：组合分析、市场分析、建议的产品包。
+任务书是2页的总结，向PDT指明方向。
+
+按IPD流程，IO/SBP将变成PDT针对不同决策评审点(DCP)的O/SBP：CDCP（概念决策评审）、PDCP（计划决策评审）、ADCP（可获得性决策评审）、GA（一般可获得性）。</div>
+  <div class="keywords">
+    <span class="keyword">IO/SBP</span><span class="keyword">任务书</span><span class="keyword">DCP</span><span class="keyword">CDCP</span><span class="keyword">PDCP</span><span class="keyword">ADCP</span><span class="keyword">GA</span><span class="keyword">IPD流程</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-049</span>
+    <div>
+      <h3>TPM——变革进展衡量指标</h3>
+      <div class="section-tag">8.3</div>
+    </div>
+  </div>
+  <div class="content-text">使用变革进展衡量指标(TPM)帮助找到提高MM流程效果和效率的措施。TPM重点在两个领域：市场规划和组合分析。
+
+五种评估程度：
+1. 试点：受控引入，测试和检验新流程
+2. 推行：几个产品线进行推行，执行不均衡
+3. 功能级：大部分产品线在推行，行为方式开始转变
+4. 集成：推行完成，市场管理融入文化
+5. 世界级：MM衡量指标达到业界最佳
+
+推行广度：试点(>20%) → 推行(>20%) → 功能级(>60%) → 集成(>80%) → 世界级(100%)</div>
+  <div class="keywords">
+    <span class="keyword">TPM</span><span class="keyword">变革进展衡量</span><span class="keyword">试点</span><span class="keyword">推行</span><span class="keyword">功能级</span><span class="keyword">集成</span><span class="keyword">世界级</span>
+  </div>
+</div>
+
+<!-- Chapter 9.0 -->
+<div id="ch9" class="chapter-title"><span class="ch-num">9.0</span>参考</div>
+
+<div class="card">
+  <div class="entry-header">
+    <span class="entry-id">MM-051</span>
+    <div>
+      <h3>定价战略</h3>
+      <div class="section-tag">9.2</div>
+    </div>
+  </div>
+  <div class="content-text">定价是营销组合中唯一能立刻影响收入的要素。六种定价方法：
+1. 价值定价：不同细分市场价值不同
+2. 竞争和对比定价：跟从其他企业价格
+3. 直觉定价：凭直觉定价（应避免）
+4. 通行定价：按各细分市场愿意支付的最高价格区分
+5. 渗透定价：进入新市场时低价，地位巩固后提高
+6. 控制或监控定价：政府控制或监控
+
+确定价格的步骤：决策销售组合→确定定价目标→估计需求→测试价格点→成本预计→分析竞争对手价格→选择定价方法→选择产品包价格→监控结果</div>
+  <div class="keywords">
+    <span class="keyword">定价战略</span><span class="keyword">价值定价</span><span class="keyword">竞争定价</span><span class="keyword">渗透定价</span><span class="keyword">通行定价</span><span class="keyword">监控定价</span>
+  </div>
+</div>
+
+<!-- Terminology -->
+<div id="terms" class="terminology-section">
+  <h2>核心术语表</h2>
+  <div class="term-grid">
+    <div class="term-item"><span class="abbr">MM</span><span class="desc">市场管理 (Market Management)</span></div>
+    <div class="term-item"><span class="abbr">IPD</span><span class="desc">集成产品开发 (Integrated Product Development)</span></div>
+    <div class="term-item"><span class="abbr">IPMT</span><span class="desc">集成组合管理团队 (Integrated Portfolio Management Team)</span></div>
+    <div class="term-item"><span class="abbr">IRB</span><span class="desc">投资评审委员会 (Investment Review Board)</span></div>
+    <div class="term-item"><span class="abbr">PMT</span><span class="desc">组合管理团队 (Portfolio Management Team)</span></div>
+    <div class="term-item"><span class="abbr">PDT</span><span class="desc">产品开发团队 (Product Development Team)</span></div>
+    <div class="term-item"><span class="abbr">LMT</span><span class="desc">生命周期管理团队 (Life-cycle Management Team)</span></div>
+    <div class="term-item"><span class="abbr">MA</span><span class="desc">市场分析 (Market Analysis)</span></div>
+    <div class="term-item"><span class="abbr">FA</span><span class="desc">财务分析 (Financial Analysis)</span></div>
+    <div class="term-item"><span class="abbr">MMC</span><span class="desc">市场管理协调员 (Market Management Coordinator)</span></div>
+    <div class="term-item"><span class="abbr">PLBP</span><span class="desc">产品线业务计划 (Product Line Business Plan)</span></div>
+    <div class="term-item"><span class="abbr">SBP</span><span class="desc">细分市场业务计划 (Segment Business Plan)</span></div>
+    <div class="term-item"><span class="abbr">O/SBP</span><span class="desc">产品包/解决方案业务计划</span></div>
+    <div class="term-item"><span class="abbr">IO/SBP</span><span class="desc">初始产品包/解决方案业务计划</span></div>
+    <div class="term-item"><span class="abbr">SPAN</span><span class="desc">战略地位分析 (Strategic Position Analysis)</span></div>
+    <div class="term-item"><span class="abbr">FAN</span><span class="desc">财务分析 (Financial Analysis)</span></div>
+    <div class="term-item"><span class="abbr">CSF</span><span class="desc">客户关键成功要素</span></div>
+    <div class="term-item"><span class="abbr">BOB</span><span class="desc">业界最佳 (Best of Best)</span></div>
+    <div class="term-item"><span class="abbr">PDC</span><span class="desc">组合决策标准 (Portfolio Decision Criteria)</span></div>
+    <div class="term-item"><span class="abbr">TPM</span><span class="desc">变革进展衡量指标</span></div>
+    <div class="term-item"><span class="abbr">DCP</span><span class="desc">决策评审点 (Decision Checkpoint)</span></div>
+    <div class="term-item"><span class="abbr">SWOT</span><span class="desc">优势/劣势/机会/威胁分析</span></div>
+    <div class="term-item"><span class="abbr">TLC</span><span class="desc">技术生命周期 (Technology Life Cycle)</span></div>
+    <div class="term-item"><span class="abbr">IMC</span><span class="desc">综合市场宣传</span></div>
+    <div class="term-item"><span class="abbr">ISC</span><span class="desc">集成供应链</span></div>
+    <div class="term-item"><span class="abbr">CRM</span><span class="desc">客户关系管理</span></div>
+    <div class="term-item"><span class="abbr">UCD</span><span class="desc">以用户为中心的设计</span></div>
+    <div class="term-item"><span class="abbr">IRR</span><span class="desc">内部收益率 (Internal Rate of Return)</span></div>
+    <div class="term-item"><span class="abbr">PTI</span><span class="desc">税前利润 (Pre-Tax Income)</span></div>
+    <div class="term-item"><span class="abbr">CAGR</span><span class="desc">年度复合增长率</span></div>
+    <div class="term-item"><span class="abbr">PLC</span><span class="desc">产品生命周期 (Product Life Cycle)</span></div>
+    <div class="term-item"><span class="abbr">$APPEALS</span><span class="desc">客户购买标准8个方面的缩略语</span></div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  清洗后知识库数据 | 源自：MM-AGC 修改中.pptx（205页）| 清洗后：53条知识条目 + 38个核心术语
+</footer>
+
+</body>
+</html>

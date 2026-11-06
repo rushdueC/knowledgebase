@@ -18,10 +18,6 @@ data/*
 logs/*
 !logs/.gitkeep
 
-# 语料（内部资料，默认不入库；想公开请自己删掉这条规则）
-docs/*
-!docs/README.md
-
 # 本地备份与 IDE
 config.py.bak.*
 .idea/

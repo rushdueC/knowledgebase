@@ -1,0 +1,34 @@
+# ---------- 运行时产物（不要上传）----------
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# 模型权重（2.2GB 的 reranker）
+models/
+
+# 向量库（可用 build_index.py 重建）
+vector_store/
+
+# 评测数据与结果（含语料原文，按需自行生成）
+data/*
+!data/.gitkeep
+
+# 日志
+logs/*
+!logs/.gitkeep
+
+# 语料（内部资料，默认不入库；想公开请自己删掉这条规则）
+docs/*
+!docs/README.md
+
+# 本地备份与 IDE
+config.py.bak.*
+.idea/
+.vscode/
+torchinductor_*/
+
+# 系统杂项
+Thumbs.db
+desktop.ini
+.DS_Store

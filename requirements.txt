@@ -1,0 +1,32 @@
+# ==== 核心（小包，秒装）====
+requests
+numpy
+pandas
+openpyxl          # 读写 xlsx（.xlsx 必须是 xlsx，别另存成 csv）
+
+# ==== 文档格式支持（按需，不装会跳过对应格式）====
+pypdf             # .pdf
+python-docx       # .docx
+python-pptx       # .pptx
+# .txt / .md / .html / .htm 不用装，标准库已支持
+
+# ==== 评测（run_eval.py）====
+# 只需要这两个：ragas 会自己拉它需要的依赖，不用手动钉别的版本
+ragas==0.4.3
+openai
+
+# ==== 界面（app.py）====
+streamlit
+
+# ==== rerank（config.py 里 RERANK_BACKEND="local"）====
+# 不装也能跑，只是 rerank 会自动降级为纯向量检索
+sentence-transformers
+huggingface_hub
+
+# ==== 可选：模型下载兜底（hub / 直连都下不动时）====
+# modelscope
+
+# ==== 可选：Langfuse 观测（不在本目录脚本里，按需自装）====
+# langfuse
+
+# 国内源：pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
